@@ -4,7 +4,7 @@
   copyObjectToScope = function(object, scope) {
 
     /*
-    Copy object (ng-repeat="object in objects") to scope without `hashKey`.
+     Copy object (ng-repeat="object in objects") to scope without `hashKey`.
      */
     var key, value;
     for (key in object) {
@@ -22,21 +22,30 @@
       $scope.setupScope = function(formObject) {
 
         /*
-        1. Copy origin formObject (ng-repeat="object in formObjects") to scope.
-        2. Setup optionsText with formObject.options.
-        3. Watch scope.label, .description, .placeholder, .required, .options then copy to origin formObject.
-        4. Watch scope.optionsText then convert to scope.options.
-        5. setup validationOptions
+         1. Copy origin formObject (ng-repeat="object in formObjects") to scope.
+         2. Setup optionsText with formObject.options.
+         3. Watch scope.label, .description, .placeholder, .required, .options then copy to origin formObject.
+         4. Watch scope.optionsText then convert to scope.options.
+         5. setup validationOptions
          */
         var component;
         copyObjectToScope(formObject, $scope);
         $scope.optionsText = formObject.options.join('\n');
-        $scope.$watch('[label, description, placeholder, required, options, validation]', function() {
+        $scope.subQuestionsText = formObject.subQuestions.join('\n');
+        $scope.answerOptionsText = formObject.answerOptions.join('\n');
+        $scope.skipOptionsInput = formObject.skipOptions;
+
+        $scope.$watch('[label, description, placeholder, required, options, subQuestions, answerOptions, skipOptions, validation]', function() {
           formObject.label = $scope.label;
           formObject.description = $scope.description;
           formObject.placeholder = $scope.placeholder;
           formObject.required = $scope.required;
           formObject.options = $scope.options;
+          formObject.subQuestions = $scope.subQuestions;
+          formObject.answerOptions = $scope.answerOptions;
+          formObject.skipOptions = $scope.skipOptions;
+          //console.log($scope.skipOptions);
+
           return formObject.validation = $scope.validation;
         }, true);
         $scope.$watch('optionsText', function(text) {
@@ -53,8 +62,56 @@
             }
             return _results;
           })();
-          return $scope.inputText = $scope.options[0];
+          //return $scope.inputText = $scope.options[0];
         });
+        $scope.$watch('subQuestionsText', function(text) {
+          var x;
+          $scope.subQuestions = (function() {
+            var _i, _len, _ref, _results;
+            _ref = text.split('\n');
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              x = _ref[_i];
+              if (x.length > 0) {
+                _results.push(x);
+              }
+            }
+            return _results;
+          })();
+          //return $scope.inputText = $scope.subQuestions[0];
+        });
+        $scope.$watch('answerOptionsText', function(text) {
+          var x;
+          $scope.answerOptions = (function() {
+            var _i, _len, _ref, _results;
+            _ref = text.split('\n');
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              x = _ref[_i];
+              if (x.length > 0) {
+                _results.push(x);
+              }
+            }
+            return _results;
+          })();
+          //return $scope.inputText = $scope.subQuestions[0];
+        });
+        $scope.$watch('skipOptionsInput', function(newVal, oldVal) {
+          $scope.skipOptions = (function() {
+            var _i, _len, _results;
+            _results = [];
+            for (_i = 0, _len = newVal.length; _i < _len; _i++) {
+              x = newVal[_i];
+              if (x) {
+                _results.push(x);
+              }else
+                _results.push(0);
+            }
+            console.log(_results);
+            return _results;
+          })();
+          //return $scope.inputText = $scope.subQuestions[0];
+        }, true);
         component = $builder.components[formObject.component];
         return $scope.validationOptions = component.validationOptions;
       };
@@ -63,7 +120,7 @@
         backup: function() {
 
           /*
-          Backup input value.
+           Backup input value.
            */
           return this.model = {
             label: $scope.label,
@@ -71,13 +128,16 @@
             placeholder: $scope.placeholder,
             required: $scope.required,
             optionsText: $scope.optionsText,
+            subQuestionsText: $scope.subQuestionsText,
+            answerOptionsText: $scope.answerOptionsText,
+            skipOptionsInput: $scope.skipOptionsInput,
             validation: $scope.validation
           };
         },
         rollback: function() {
 
           /*
-          Rollback input value.
+           Rollback input value.
            */
           if (!this.model) {
             return;
@@ -87,6 +147,9 @@
           $scope.placeholder = this.model.placeholder;
           $scope.required = this.model.required;
           $scope.optionsText = this.model.optionsText;
+          $scope.subQuestionsText = this.model.subQuestionsText;
+          $scope.answerOptionsText = this.model.answerOptionsText;
+          $scope.skipOptionsInput = this.model.skipOptionsInput;
           return $scope.validation = this.model.validation;
         }
       };
@@ -152,8 +215,8 @@
       return $scope.updateInput = function(value) {
 
         /*
-        Copy current scope.input[X] to $parent.input.
-        @param value: The input value.
+         Copy current scope.input[X] to $parent.input.
+         @param value: The input value.
          */
         var input;
         input = {
@@ -321,15 +384,14 @@
               html: true,
               title: scope.$component.label,
               content: popover.view,
-              container: 'body',
-              placement: $builder.config.popoverPlacement
+              container: 'body'
             });
           });
           scope.popover = {
             save: function($event) {
 
               /*
-              The save event of the popover.
+               The save event of the popover.
                */
               $event.preventDefault();
               $validator.validate(scope).success(function() {
@@ -340,7 +402,7 @@
             remove: function($event) {
 
               /*
-              The delete event of the popover.
+               The delete event of the popover.
                */
               $event.preventDefault();
               $builder.removeFormObject(scope.$parent.formName, scope.$parent.$index);
@@ -349,7 +411,7 @@
             shown: function() {
 
               /*
-              The shown event of the popover.
+               The shown event of the popover.
                */
               scope.data.backup();
               return popover.isClickedSave = false;
@@ -357,7 +419,7 @@
             cancel: function($event) {
 
               /*
-              The cancel event of the popover.
+               The cancel event of the popover.
                */
               scope.data.rollback();
               if ($event) {
@@ -493,7 +555,7 @@
           if (scope.$component.arrayToText) {
             scope.inputArray = [];
             scope.$watch('inputArray', function(newValue, oldValue) {
-              var checked, index, _ref;
+              var checked, index;
               if (newValue === oldValue) {
                 return;
               }
@@ -528,7 +590,7 @@
           if (!scope.$component.arrayToText && scope.formObject.options.length > 0) {
             scope.inputText = scope.formObject.options[0];
           }
-          return scope.$watch("default['" + scope.formObject.id + "']", function(value) {
+          return scope.$watch("default[" + scope.formObject.id + "]", function(value) {
             if (!value) {
               return;
             }
@@ -613,7 +675,7 @@
     this.setupProviders = function(injector) {
 
       /*
-      Setup providers.
+       Setup providers.
        */
       $injector = injector;
       return $rootScope = $injector.get('$rootScope');
@@ -622,9 +684,9 @@
       return function($elementA, $elementB) {
 
         /*
-        Is element A hover on element B?
-        @param $elementA: jQuery object
-        @param $elementB: jQuery object
+         Is element A hover on element B?
+         @param $elementA: jQuery object
+         @param $elementB: jQuery object
          */
         var isHover, offsetA, offsetB, sizeA, sizeB;
         offsetA = $elementA.offset();
@@ -887,12 +949,12 @@
         }
 
         /*
-        Make the element could be drag.
-        @param element: The jQuery element.
-        @param options: Options
-            mode: 'drag' [default], 'mirror'
-            defer: yes/no. defer dragging
-            object: custom information
+         Make the element could be drag.
+         @param element: The jQuery element.
+         @param options: Options
+         mode: 'drag' [default], 'mirror'
+         defer: yes/no. defer dragging
+         object: custom information
          */
         result = [];
         if (options.mode === 'mirror') {
@@ -921,12 +983,12 @@
         }
 
         /*
-        Make the element coulde be drop.
-        @param $element: The jQuery element.
-        @param options: The droppable options.
-            move: The custom mouse move callback. (e, draggable)->
-            up: The custom mouse up callback. (e, isHover, draggable)->
-            out: The custom mouse out callback. (e, draggable)->
+         Make the element coulde be drop.
+         @param $element: The jQuery element.
+         @param options: The droppable options.
+         move: The custom mouse move callback. (e, draggable)->
+         up: The custom mouse up callback. (e, isHover, draggable)->
+         out: The custom mouse out callback. (e, draggable)->
          */
         result = [];
         for (_i = 0, _len = $element.length; _i < _len; _i++) {
@@ -961,16 +1023,16 @@
 
 
 /*
-    component:
-        It is like a class.
-        The base components are textInput, textArea, select, check, radio.
-        User can custom the form with components.
-    formObject:
-        It is like an object (an instance of the component).
-        User can custom the label, description, required and validation of the input.
-    form:
-        This is for end-user. There are form groups int the form.
-        They can input the value to the form.
+ component:
+ It is like a class.
+ The base components are textInput, textArea, select, check, radio.
+ User can custom the form with components.
+ formObject:
+ It is like an object (an instance of the component).
+ User can custom the label, description, required and validation of the input.
+ form:
+ This is for end-user. There are form groups int the form.
+ They can input the value to the form.
  */
 
 (function() {
@@ -981,9 +1043,7 @@
     $injector = null;
     $http = null;
     $templateCache = null;
-    this.config = {
-      popoverPlacement: 'right'
-    };
+    this.version = '0.0.2';
     this.components = {};
     this.groups = [];
     this.broadcastChannel = {
@@ -992,8 +1052,11 @@
     this.forms = {
       "default": []
     };
+    this.formsId = {
+      "default": 0
+    };
     this.convertComponent = function(name, component) {
-      var result, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
+      var result, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _ref10, _ref11, _ref12;
       result = {
         name: name,
         group: (_ref = component.group) != null ? _ref : 'Default',
@@ -1005,7 +1068,10 @@
         validation: (_ref6 = component.validation) != null ? _ref6 : '/.*/',
         validationOptions: (_ref7 = component.validationOptions) != null ? _ref7 : [],
         options: (_ref8 = component.options) != null ? _ref8 : [],
-        arrayToText: (_ref9 = component.arrayToText) != null ? _ref9 : false,
+        subQuestions: (_ref9 = component.subQuestions) != null ? _ref9 : [],
+        answerOptions: (_ref10 = component.answerOptions) != null ? _ref10 : [],
+        skipOptions: (_ref11 = component.skipOptions) != null ? _ref11 : [],
+        arrayToText: (_ref12 = component.arrayToText) != null ? _ref12 : false,
         template: component.template,
         templateUrl: component.templateUrl,
         popoverTemplate: component.popoverTemplate,
@@ -1020,7 +1086,7 @@
       return result;
     };
     this.convertFormObject = function(name, formObject) {
-      var component, result, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
+      var component, exist, form, result, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _ref10, _ref11, _ref12;
       if (formObject == null) {
         formObject = {};
       }
@@ -1028,17 +1094,36 @@
       if (component == null) {
         throw "The component " + formObject.component + " was not registered.";
       }
+      if (formObject.id) {
+        exist = false;
+        _ref = this.forms[name];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          form = _ref[_i];
+          if (!(formObject.id <= form.id)) {
+            continue;
+          }
+          formObject.id = this.formsId[name]++;
+          exist = true;
+          break;
+        }
+        if (!exist) {
+          this.formsId[name] = formObject.id + 1;
+        }
+      }
       result = {
-        id: formObject.id,
+        id: (_ref1 = formObject.id) != null ? _ref1 : this.formsId[name]++,
         component: formObject.component,
-        editable: (_ref = formObject.editable) != null ? _ref : component.editable,
-        index: (_ref1 = formObject.index) != null ? _ref1 : 0,
-        label: (_ref2 = formObject.label) != null ? _ref2 : component.label,
-        description: (_ref3 = formObject.description) != null ? _ref3 : component.description,
-        placeholder: (_ref4 = formObject.placeholder) != null ? _ref4 : component.placeholder,
-        options: (_ref5 = formObject.options) != null ? _ref5 : component.options,
-        required: (_ref6 = formObject.required) != null ? _ref6 : component.required,
-        validation: (_ref7 = formObject.validation) != null ? _ref7 : component.validation
+        editable: (_ref2 = formObject.editable) != null ? _ref2 : component.editable,
+        index: (_ref3 = formObject.index) != null ? _ref3 : 0,
+        label: (_ref4 = formObject.label) != null ? _ref4 : component.label,
+        description: (_ref5 = formObject.description) != null ? _ref5 : component.description,
+        placeholder: (_ref6 = formObject.placeholder) != null ? _ref6 : component.placeholder,
+        options: (_ref7 = formObject.options) != null ? _ref7 : component.options,
+        subQuestions: (_ref8 = formObject.subQuestions) != null ? _ref8 : component.subQuestions,
+        answerOptions: (_ref9 = formObject.answerOptions) != null ? _ref9 : component.answerOptions,
+        skipOptions: (_ref10 = formObject.skipOptions) != null ? _ref10 : component.skipOptions,
+        required: (_ref11 = formObject.required) != null ? _ref11 : component.required,
+        validation: (_ref12 = formObject.validation) != null ? _ref12 : component.validation
       };
       return result;
     };
@@ -1061,8 +1146,8 @@
     this.loadTemplate = function(component) {
 
       /*
-      Load template for components.
-      @param component: {object} The component of $builder.
+       Load template for components.
+       @param component: {object} The component of $builder.
        */
       if (component.template == null) {
         $http.get(component.templateUrl, {
@@ -1087,23 +1172,23 @@
         }
 
         /*
-        Register the component for form-builder.
-        @param name: The component name.
-        @param component: The component object.
-            group: {string} The component group.
-            label: {string} The label of the input.
-            description: {string} The description of the input.
-            placeholder: {string} The placeholder of the input.
-            editable: {bool} Is the form object editable?
-            required: {bool} Is the form object required?
-            validation: {string} angular-validator. "/regex/" or "[rule1, rule2]". (default is RegExp(.*))
-            validationOptions: {array} [{rule: angular-validator, label: 'option label'}] the options for the validation. (default is [])
-            options: {array} The input options.
-            arrayToText: {bool} checkbox could use this to convert input (default is no)
-            template: {string} html template
-            templateUrl: {string} The url of the template.
-            popoverTemplate: {string} html template
-            popoverTemplateUrl: {string} The url of the popover template.
+         Register the component for form-builder.
+         @param name: The component name.
+         @param component: The component object.
+         group: {string} The component group.
+         label: {string} The label of the input.
+         description: {string} The description of the input.
+         placeholder: {string} The placeholder of the input.
+         editable: {bool} Is the form object editable?
+         required: {bool} Is the form object required?
+         validation: {string} angular-validator. "/regex/" or "[rule1, rule2]". (default is RegExp(.*))
+         validationOptions: {array} [{rule: angular-validator, label: 'option label'}] the options for the validation. (default is [])
+         options: {array} The input options.
+         arrayToText: {bool} checkbox could use this to convert input (default is no)
+         template: {string} html template
+         templateUrl: {string} The url of the template.
+         popoverTemplate: {string} html template
+         popoverTemplateUrl: {string} The url of the popover template.
          */
         if (_this.components[name] == null) {
           newComponent = _this.convertComponent(name, component);
@@ -1127,7 +1212,7 @@
         }
 
         /*
-        Insert the form object into the form at last.
+         Insert the form object into the form at last.
          */
         if ((_base = _this.forms)[name] == null) {
           _base[name] = [];
@@ -1137,30 +1222,33 @@
     })(this);
     this.insertFormObject = (function(_this) {
       return function(name, index, formObject) {
-        var _base;
+        var _base, _base1;
         if (formObject == null) {
           formObject = {};
         }
 
         /*
-        Insert the form object into the form at {index}.
-        @param name: The form name.
-        @param index: The form object index.
-        @param form: The form object.
-            id: The form object id.
-            component: {string} The component name
-            editable: {bool} Is the form object editable? (default is yes)
-            label: {string} The form object label.
-            description: {string} The form object description.
-            placeholder: {string} The form object placeholder.
-            options: {array} The form object options.
-            required: {bool} Is the form object required? (default is no)
-            validation: {string} angular-validator. "/regex/" or "[rule1, rule2]".
-            [index]: {int} The form object index. It will be updated by $builder.
-        @return: The form object.
+         Insert the form object into the form at {index}.
+         @param name: The form name.
+         @param index: The form object index.
+         @param form: The form object.
+         id: {int} The form object id. It will be generate by $builder if not asigned.
+         component: {string} The component name
+         editable: {bool} Is the form object editable? (default is yes)
+         label: {string} The form object label.
+         description: {string} The form object description.
+         placeholder: {string} The form object placeholder.
+         options: {array} The form object options.
+         required: {bool} Is the form object required? (default is no)
+         validation: {string} angular-validator. "/regex/" or "[rule1, rule2]".
+         [index]: {int} The form object index. It will be updated by $builder.
+         @return: The form object.
          */
         if ((_base = _this.forms)[name] == null) {
           _base[name] = [];
+        }
+        if ((_base1 = _this.formsId)[name] == null) {
+          _base1[name] = 0;
         }
         if (index > _this.forms[name].length) {
           index = _this.forms[name].length;
@@ -1176,9 +1264,9 @@
       return function(name, index) {
 
         /*
-        Remove the form object by the index.
-        @param name: The form name.
-        @param index: The form object index.
+         Remove the form object by the index.
+         @param name: The form name.
+         @param index: The form object index.
          */
         var formObjects;
         formObjects = _this.forms[name];
@@ -1190,10 +1278,10 @@
       return function(name, oldIndex, newIndex) {
 
         /*
-        Update the index of the form object.
-        @param name: The form name.
-        @param oldIndex: The old index.
-        @param newIndex: The new index.
+         Update the index of the form object.
+         @param name: The form name.
+         @param oldIndex: The old index.
+         @param newIndex: The new index.
          */
         var formObject, formObjects;
         if (oldIndex === newIndex) {
@@ -1216,7 +1304,7 @@
             _this.loadTemplate(component);
           }
           return {
-            config: _this.config,
+            version: _this.version,
             components: _this.components,
             groups: _this.groups,
             forms: _this.forms,
