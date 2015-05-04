@@ -34,8 +34,12 @@
         $scope.subQuestionsText = formObject.subQuestions.join('\n');
         $scope.answerOptionsText = formObject.answerOptions.join('\n');
         $scope.skipOptionsInput = formObject.skipOptions;
+        $scope.minLabelInput = formObject.minLabel || '';
+        $scope.minValueInput = formObject.minValue || '';
+        $scope.maxLabelInput = formObject.maxLabel || '';
+        $scope.maxValueInput = formObject.maxValue || '';
 
-        $scope.$watch('[label, description, placeholder, required, options, subQuestions, answerOptions, skipOptions, validation]', function() {
+        $scope.$watch('[label, description, placeholder, required, options, subQuestions, answerOptions, skipOptions, minLabel, minValue, MaxLabel, validation]', function() {
           formObject.label = $scope.label;
           formObject.description = $scope.description;
           formObject.placeholder = $scope.placeholder;
@@ -43,6 +47,10 @@
           formObject.options = $scope.options;
           formObject.subQuestions = $scope.subQuestions;
           formObject.answerOptions = $scope.answerOptions;
+          formObject.minLabel = $scope.minLabel;
+          formObject.maxLabel = $scope.maxLabel;
+          formObject.minValue = $scope.minValue;
+          formObject.maxValue = $scope.maxValue;
           formObject.skipOptions = $scope.skipOptions;
           //console.log($scope.skipOptions);
 
@@ -107,11 +115,15 @@
               }else
                 _results.push(0);
             }
-            console.log(_results);
             return _results;
           })();
           return $scope.inputText = $scope.skipOptions[0];
         }, true);
+
+        $scope.$watch('maxLabelInput', function(value){ return $scope.maxLabel = value;});
+        $scope.$watch('minLabelInput', function(value){ return $scope.minLabel = value;});
+        $scope.$watch('maxValueInput', function(value){ return $scope.maxValue = value;});
+        $scope.$watch('minValueInput', function(value){ return $scope.minValue = value;});
         component = $builder.components[formObject.component];
         return $scope.validationOptions = component.validationOptions;
       };
@@ -131,6 +143,10 @@
             subQuestionsText: $scope.subQuestionsText,
             answerOptionsText: $scope.answerOptionsText,
             skipOptionsInput: $scope.skipOptionsInput,
+            minLabelInput: $scope.minLabelInput,
+            maxLabelInput: $scope.maxLabelInput,
+            minValueInput: $scope.minValueInput,
+            maxValueInput: $scope.maxValueInput,
             validation: $scope.validation
           };
         },
@@ -150,6 +166,10 @@
           $scope.subQuestionsText = this.model.subQuestionsText;
           $scope.answerOptionsText = this.model.answerOptionsText;
           $scope.skipOptionsInput = this.model.skipOptionsInput;
+          $scope.minLabelInput = this.model.minLabelInput;
+          $scope.maxLabelInput = this.model.maxLabelInput;
+          $scope.minValueInput = this.model.minValueInput;
+          $scope.maxValueInput = this.model.maxValueInput;
           return $scope.validation = this.model.validation;
         }
       };
@@ -242,7 +262,7 @@
         scope: {
           fbBuilder: '='
         },
-        template: "<div class='form-horizontal'>\n    <div class='fb-form-object-editable' ng-repeat=\"object in formObjects\"\n        fb-form-object-editable=\"object\"></div>\n</div>",
+        template: "<div class='form-horizontal drag_from'>\n    <div class='fb-form-object-editable' ng-repeat=\"object in formObjects\"\n        fb-form-object-editable=\"object\"></div>\n</div>",
         link: function(scope, element, attrs) {
           var beginMove, _base, _name;
           scope.formName = attrs.fbBuilder;
@@ -480,7 +500,7 @@
   ]).directive('fbComponents', function() {
     return {
       restrict: 'A',
-      template: "<ul ng-if=\"groups.length > 1\" class=\"nav nav-tabs nav-justified\">\n    <li ng-repeat=\"group in groups\" ng-class=\"{active:activeGroup==group}\">\n        <a href='#' ng-click=\"selectGroup($event, group)\">{{group}}</a>\n    </li>\n</ul>\n<div class='form-horizontal'>\n    <div class='fb-component' ng-repeat=\"component in components\"\n        fb-component=\"component\"></div>\n</div>",
+      template: "<ul ng-if=\"groups.length > 1\" class=\"nav nav-tabs nav-justified\">\n    <li ng-repeat=\"group in groups\" ng-class=\"{active:activeGroup==group}\">\n        <a href='#' ng-click=\"selectGroup($event, group)\">{{group}}</a>\n    </li>\n</ul>\n<div class='form-horizontal drag_from'>\n    <div class='fb-component' ng-repeat=\"component in components\"\n        fb-component=\"component\"></div>\n</div>",
       controller: 'fbComponentsController'
     };
   }).directive('fbComponent', [
@@ -789,7 +809,7 @@
           e.preventDefault();
           $clone = $element.clone();
           result.element = $clone[0];
-          $clone.addClass("fb-draggable form-horizontal prepare-dragging");
+          $clone.addClass("fb-draggable prepare-dragging");
           _this.hooks.move.drag = function(e, defer) {
             var droppable, id, _ref, _results;
             if ($clone.hasClass('prepare-dragging')) {
@@ -1056,7 +1076,8 @@
       "default": 0
     };
     this.convertComponent = function(name, component) {
-      var result, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _ref10, _ref11, _ref12;
+      var result, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _ref10, _ref11, _ref12,
+          _ref13, _ref14, _ref15, _ref16;
       result = {
         name: name,
         group: (_ref = component.group) != null ? _ref : 'Default',
@@ -1072,6 +1093,10 @@
         answerOptions: (_ref10 = component.answerOptions) != null ? _ref10 : [],
         skipOptions: (_ref11 = component.skipOptions) != null ? _ref11 : [],
         arrayToText: (_ref12 = component.arrayToText) != null ? _ref12 : false,
+        minLabel: (_ref13 = component.minLabel) != null ? _ref13 : false,
+        maxLabel: (_ref14 = component.maxLabel) != null ? _ref14 : false,
+        minValue: (_ref15 = component.minValue) != null ? _ref15 : false,
+        maxValue: (_ref16 = component.maxValue) != null ? _ref16 : false,
         template: component.template,
         templateUrl: component.templateUrl,
         popoverTemplate: component.popoverTemplate,
@@ -1086,7 +1111,8 @@
       return result;
     };
     this.convertFormObject = function(name, formObject) {
-      var component, exist, form, result, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _ref10, _ref11, _ref12;
+      var component, exist, form, result, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _ref10, _ref11, _ref12,
+          _ref13, _ref14, _ref15, _ref16;
       if (formObject == null) {
         formObject = {};
       }
@@ -1122,6 +1148,10 @@
         subQuestions: (_ref8 = formObject.subQuestions) != null ? _ref8 : component.subQuestions,
         answerOptions: (_ref9 = formObject.answerOptions) != null ? _ref9 : component.answerOptions,
         skipOptions: (_ref10 = formObject.skipOptions) != null ? _ref10 : component.skipOptions,
+        minLabel: (_ref13 = formObject.minLabel) != null ? _ref13 : component.minLabel,
+        maxLabel: (_ref14 = formObject.maxLabel) != null ? _ref14 : component.maxLabel,
+        minValue: (_ref15 = formObject.minValue) != null ? _ref15 : component.minValue,
+        maxValue: (_ref16 = formObject.maxValue) != null ? _ref16 : component.maxValue,
         required: (_ref11 = formObject.required) != null ? _ref11 : component.required,
         validation: (_ref12 = formObject.validation) != null ? _ref12 : component.validation
       };
