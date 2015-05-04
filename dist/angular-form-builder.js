@@ -62,7 +62,7 @@
             }
             return _results;
           })();
-          //return $scope.inputText = $scope.options[0];
+          return $scope.inputText = $scope.options[0];
         });
         $scope.$watch('subQuestionsText', function(text) {
           var x;
@@ -78,7 +78,7 @@
             }
             return _results;
           })();
-          //return $scope.inputText = $scope.subQuestions[0];
+          return $scope.inputText = $scope.subQuestions[0];
         });
         $scope.$watch('answerOptionsText', function(text) {
           var x;
@@ -94,7 +94,7 @@
             }
             return _results;
           })();
-          //return $scope.inputText = $scope.subQuestions[0];
+          return $scope.inputText = $scope.answerOptions[0];
         });
         $scope.$watch('skipOptionsInput', function(newVal, oldVal) {
           $scope.skipOptions = (function() {
@@ -110,7 +110,7 @@
             console.log(_results);
             return _results;
           })();
-          //return $scope.inputText = $scope.subQuestions[0];
+          return $scope.inputText = $scope.skipOptions[0];
         }, true);
         component = $builder.components[formObject.component];
         return $scope.validationOptions = component.validationOptions;
