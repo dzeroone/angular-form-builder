@@ -2,10 +2,10 @@
   "name": "angular-form-builder",
   "version": "0.1.0",
   "description": "AngularJS form builder.",
-  "homepage": "https://github.com/kelp404/angular-form-builder",
+  "homepage": "https://github.com/dzeroone/angular-form-builder",
   "repository": {
     "type": "git",
-    "url": "git://github.com/kelp404/angular-form-builder.git"
+    "url": "git://github.com/dzeroone/angular-form-builder.git"
   },
   "keywords": [
     "AngularJS",
@@ -32,16 +32,17 @@
   },
   "devDependencies": {
     "grunt": "~0.4.2",
-    "grunt-contrib-coffee": "^0.12.0",
-    "grunt-contrib-compass": "^1.0.1",
+    "grunt-contrib-coffee": "~0.10.0",
+    "grunt-contrib-compass": "^0.8.0",
     "grunt-contrib-connect": "^0.8.0",
-    "grunt-contrib-uglify": "^0.6.0",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-karma": "^0.9.0",
-    "karma": "^0.12.16",
+    "grunt-karma": "~0.8.2",
+    "karma": "~0.12.1",
     "karma-coffee-preprocessor": "~0.2.1",
-    "karma-jasmine": "^0.2.2",
-    "karma-phantomjs-launcher": "^0.1.4",
+    "karma-html2js-preprocessor": "~0.1.0",
+    "karma-jasmine": "~0.1.5",
+    "karma-phantomjs-launcher": "~0.1.2",
+    "karma-requirejs": "~0.2.1",
     "karma-script-launcher": "~0.1.0"
   }
 }
